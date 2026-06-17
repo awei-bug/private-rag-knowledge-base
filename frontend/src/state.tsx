@@ -128,6 +128,7 @@ type AppContextValue = {
   backupVersions: BackupManifestResponse | null;
   currentUser: UserProfile | null;
   authToken: string;
+  canAccessPrivateData: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   refreshAuth: () => Promise<void>;
@@ -433,17 +434,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setBusy("refresh");
     setError("");
     try {
-      const [appHealth, dbHealth, configResponse, docs, logs] = await Promise.all([
-        api.getHealth(),
-        api.getDbHealth(),
-        api.getConfig(),
-        api.listDocuments(),
-        api.listLogs(8),
-      ]);
-      const preferences = normalizePreferences(configResponse);
-
+      const [appHealth, dbHealth] = await Promise.all([api.getHealth(), api.getDbHealth()]);
       setAppStatus(appHealth.status);
       setDbStatus(dbHealth.status);
+      if (!getAuthToken()) {
+        setAppVersion("--");
+        setModeLabel("登录后访问");
+        setDocuments([]);
+        setRecentActivities([]);
+        setAnalyticsOverview(null);
+        setDocumentGraph(null);
+        setQueryInsights(null);
+        setSystemMetrics(null);
+        return;
+      }
+      const [configResponse, docs, logs] = await Promise.all([api.getConfig(), api.listDocuments(), api.listLogs(8)]);
+      const preferences = normalizePreferences(configResponse);
       setAppVersion(configResponse.app_version);
       setModeLabel(configResponse.runtime_mode === "local" ? "本地处理" : "API 模式");
       setEmbeddingProvider(configResponse.embedding_provider);
@@ -471,6 +477,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setBusy("analytics");
     setError("");
     try {
+      if (!getAuthToken()) {
+        setAnalyticsOverview(null);
+        setDocumentGraph(null);
+        setQueryInsights(null);
+        setSystemMetrics(null);
+        return;
+      }
       const [overview, graph, insights, metrics] = await Promise.all([
         api.getAnalyticsOverview(),
         api.getDocumentGraph(),
@@ -1023,6 +1036,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     chatSessions[0] ??
     createSession(retrievalMode, topK, queryRewriteEnabled);
   const chatMessages = activeSession.messages;
+  const canAccessPrivateData = Boolean(currentUser || authTokenState);
 
   function openSettings() {
     setCurrentView("settings");
@@ -1134,6 +1148,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       backupVersions,
       currentUser,
       authToken: authTokenState,
+      canAccessPrivateData,
       login,
       logout,
       refreshAuth,
@@ -1220,6 +1235,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       backupVersions,
       currentUser,
       authTokenState,
+      canAccessPrivateData,
     ],
   );
 

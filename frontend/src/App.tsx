@@ -137,6 +137,7 @@ function KnowledgeBasePage() {
     backupVersions,
     currentUser,
     authToken,
+    canAccessPrivateData,
     uploadFile,
     syncDirectory,
     askQuestion,
@@ -230,8 +231,12 @@ function KnowledgeBasePage() {
   }, [defaultFolderPath]);
 
   useEffect(() => {
+    if (!canAccessPrivateData) {
+      setLastUpdatedAt(new Date().toISOString());
+      return;
+    }
     void refreshAnalytics().finally(() => setLastUpdatedAt(new Date().toISOString()));
-  }, []);
+  }, [canAccessPrivateData, refreshAnalytics]);
 
   useEffect(() => {
     setSelectedDocumentIds((prev) =>
@@ -395,6 +400,56 @@ function KnowledgeBasePage() {
 
   function toggleCollapse(key: keyof CollapseState) {
     setCollapsed((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  if (!canAccessPrivateData) {
+    return (
+      <div className="dashboard-shell">
+        <aside className="left-rail">
+          <div className="brand-block">
+            <span className="brand-kicker">私有检索控制台</span>
+            <h1>我的知识库</h1>
+            <p>先登录，再访问文档、问答、分析和维护功能。</p>
+          </div>
+          <div className="rail-footer">
+            <AuthPanel
+              currentUser={currentUser}
+              authToken={authToken}
+              username={loginUsername}
+              password={loginPassword}
+              busy={busy}
+              onUsernameChange={setLoginUsername}
+              onPasswordChange={setLoginPassword}
+              onSubmit={(event) => void handleLogin(event)}
+              onLogout={logout}
+            />
+            <StatusCard
+              appStatus={appStatus}
+              dbStatus={dbStatus}
+              appVersion={appVersion}
+              modeLabel={modeLabel}
+              lastUpdatedAt={lastUpdatedAt}
+            />
+          </div>
+        </aside>
+        <main className="center-stage">
+          <section className="main-panel">
+            <div className="view-stack">
+              <section className="hero-banner">
+                <div>
+                  <span className="section-kicker">访问受保护数据</span>
+                  <h3>登录后进入知识库控制台</h3>
+                  <p>未登录状态下，前端不会再请求受保护接口，也不会再刷出整页 401 报错。</p>
+                </div>
+              </section>
+            </div>
+          </section>
+        </main>
+        <aside className="right-rail" />
+        {error ? <div className="floating-error">{error}</div> : null}
+        <ToastStack notices={notices} />
+      </div>
+    );
   }
 
   return (
