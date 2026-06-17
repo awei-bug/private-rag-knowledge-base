@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import {
   api,
@@ -430,7 +430,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     setBusy("refresh");
     setError("");
     try {
@@ -471,9 +471,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } finally {
       setBusy("");
     }
-  }
+  }, [queryRewriteEnabled, retrievalMode, topK]);
 
-  async function refreshAnalytics() {
+  const refreshAnalytics = useCallback(async () => {
     setBusy("analytics");
     setError("");
     try {
@@ -501,7 +501,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } finally {
       setBusy("");
     }
-  }
+  }, []);
 
   async function uploadFile(file: File) {
     setBusy("upload");
