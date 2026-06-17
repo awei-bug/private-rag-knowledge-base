@@ -18,6 +18,10 @@
 
 ![Private RAG Console](docs/assets/frontend-overview.png)
 
+### 界面演示
+
+![Private RAG Demo](docs/assets/frontend-demo.gif)
+
 ## 核心能力
 
 - 文档上传、批量管理、重命名、分类、移动、删除
