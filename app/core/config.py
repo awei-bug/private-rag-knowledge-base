@@ -54,6 +54,7 @@ class Settings(BaseSettings):
     )
     cors_allow_credentials: bool = True
     storage_local_root: str = "./data/uploads"
+    backup_local_root: str = "./data/backups"
     local_mode_enabled: bool = True
     local_mode_user: dict[str, Any] = Field(
         default_factory=lambda: {

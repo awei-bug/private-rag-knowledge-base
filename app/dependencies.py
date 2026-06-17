@@ -68,6 +68,7 @@ def get_analytics_service() -> AnalyticsService:
 
 
 def get_maintenance_service() -> MaintenanceService:
+    settings = get_settings()
     session_factory = get_session_factory()
     embedder = get_embedder()
     return MaintenanceService(
@@ -75,6 +76,7 @@ def get_maintenance_service() -> MaintenanceService:
         document_store=SqlDocumentStore(session_factory, embedder),
         audit_store=SqlAuditStore(session_factory),
         full_text=get_full_text_search(),
+        backup_root=settings.backup_local_root,
     )
 
 

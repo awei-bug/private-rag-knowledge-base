@@ -5,10 +5,11 @@ services:
     build:
       context: .
     container_name: enterprise-rag-app
+    restart: unless-stopped
     ports:
       - "8000:8000"
     env_file:
-      - .env.production.example
+      - .env.production
     environment:
       RAG_DATABASE_URL: postgresql+psycopg://rag:rag@postgres:5432/ragdb
       RAG_DATABASE_ECHO: "false"
@@ -16,8 +17,9 @@ services:
       RAG_DATABASE_MAX_OVERFLOW: "20"
       RAG_DATABASE_CONNECT_TIMEOUT: "5"
       RAG_STORAGE_LOCAL_ROOT: /data/uploads
+      RAG_BACKUP_LOCAL_ROOT: /data/backups
     volumes:
-      - uploads_data:/data/uploads
+      - app_data:/data
     depends_on:
       postgres:
         condition: service_healthy
@@ -30,6 +32,7 @@ services:
     build:
       context: ./frontend
     container_name: enterprise-rag-frontend
+    restart: unless-stopped
     ports:
       - "8080:80"
     depends_on:
@@ -38,12 +41,11 @@ services:
   postgres:
     image: pgvector/pgvector:pg16
     container_name: enterprise-rag-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ragdb
       POSTGRES_USER: rag
       POSTGRES_PASSWORD: rag
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -55,19 +57,18 @@ services:
   redis:
     image: redis:7
     container_name: enterprise-rag-redis
-    ports:
-      - "6379:6379"
+    restart: unless-stopped
 
   opensearch:
     image: opensearchproject/opensearch:2.15.0
     container_name: enterprise-rag-opensearch
+    restart: unless-stopped
+    profiles:
+      - search
     environment:
       discovery.type: single-node
       plugins.security.disabled: "true"
       OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
-    ports:
-      - "9200:9200"
-
 volumes:
   postgres_data:
-  uploads_data:
+  app_data:

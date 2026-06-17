@@ -25,13 +25,14 @@ class MaintenanceService:
         document_store: SqlDocumentStore,
         audit_store: SqlAuditStore,
         full_text: FullTextSearch,
+        backup_root: str,
     ) -> None:
         self.session_factory = session_factory
         self.document_store = document_store
         self.audit_store = audit_store
         self.full_text = full_text
         self.object_storage = LocalObjectStorage()
-        self.backup_root = Path("./data/backups").resolve()
+        self.backup_root = Path(backup_root).resolve()
 
     def rebuild_indexes(self) -> MaintenanceActionResponse:
         documents = self.document_store.get_all_documents()

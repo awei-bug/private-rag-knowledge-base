@@ -99,6 +99,19 @@ cd frontend
 npm.cmd run build
 ```
 
+## 交付文档
+
+- 部署运行手册：`docs/deployment-runbook.md`
+- 交付验收清单：`docs/delivery-checklist.md`
+
+## 生产部署辅助脚本
+
+- 生成生产环境文件：`scripts/prepare_production_env.ps1`
+- 生产部署前检查：`scripts/preflight_production.ps1`
+- 本地生产默认不启用 OpenSearch；如需启用，使用 `docker compose --profile search up -d --build`
+- 无 Docker 本地生产预检：`scripts/preflight_local_production.ps1`
+- 无 Docker 本地生产启动：`scripts/start_local_production.ps1`
+
 ## 项目边界
 
 - 默认 SQLite 更适合单机本地使用；多人协作或生产部署建议切换 PostgreSQL。
